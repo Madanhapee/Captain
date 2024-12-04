@@ -1,0 +1,69 @@
+ @title Default title text
+
+
+!pip install streamlit
+
+
+import streamlit as st
+import joblib
+import pandas as pd
+import numpy as np
+
+# Load the saved model
+model = joblib.load('/content/drive/MyDrive/cholera_model.pkl')
+
+# Create a Streamlit app
+st.title("Cholera Prediction App")
+
+# Create input fields for user input
+diarrhoea = st.selectbox('Diarrhoea', ['Yes', 'No'])
+vomiting = st.selectbox('Vomiting', ['Yes', 'No'])
+dehydration = st.selectbox('Dehydration', ['Yes', 'No'])
+abdominal_pain = st.selectbox('Abdominal Pain/Cramps', ['Yes', 'No'])
+headache = st.selectbox('Headache', ['Yes', 'No'])
+age = st.number_input('Age', min_value=0, max_value=120, value=30)
+
+# Create a button to trigger prediction
+if st.button("Predict"):
+    # Create a DataFrame for the input
+    input_data = pd.DataFrame({
+        'Diarrhoea': [diarrhoea],
+        'Vomiting': [vomiting],
+        'Dehydration': [dehydration],
+        'Abdominal Pain/Cramps': [abdominal_pain],
+        'Headache': [headache],
+        'Age': [age]
+    })
+    st.link
+
+    # Preprocess the input data (same as during training)
+    label_encoders = {
+        'Diarrhoea': {'Yes': 1, 'No': 0},
+        'Vomiting': {'Yes': 1, 'No': 0},
+        'Dehydration': {'Yes': 1, 'No': 0},
+        'Abdominal Pain/Cramps': {'Yes': 1, 'No': 0},
+        'Headache': {'Yes': 1, 'No': 0}
+    }
+
+    for col in ['Diarrhoea', 'Vomiting', 'Dehydration', 'Abdominal Pain/Cramps', 'Headache']:
+        input_data[col] = input_data[col].map(label_encoders[col])
+
+    # Scale the age using the same scaler as used during model training.  (Important!)
+    # You need to load/recreate the scaler object used in the training notebook.
+    # Example (replace with your actual scaling method):
+    scaler = StandardScaler() # If you used StandardScaler()
+    # scaler = MinMaxScaler() # If you used MinMaxScaler()
+    # ... other scaler objects
+
+    input_data['Age'] = scaler.fit_transform(input_data[['Age']])
+
+    # Make the prediction
+    prediction = model.predict(input_data)
+
+    # Display the prediction
+    if prediction[0] == 0:  # Assuming 0 represents Negative, and 1 represents Positive
+        st.write("Prediction: Negative")
+    else:
+        st.write("Prediction: Positive")
+# Run the app
+!streamlit run app.py &>/dev/null&
